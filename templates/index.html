@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roach Roundup — Live Trackers</title>
+  <meta name="description" content="Live data trackers from congress.gov and federal sources. Investigative reporting by Rebecca Bruckner, Roach Roundup.">
+  <style>
+    :root {
+      --red: #B71C1C;
+      --red-dark: #7A0E0E;
+      --black: #0A0A0A;
+      --gray-line: #E5E5E5;
+      --gray-bg: #FAFAFA;
+      --gray-text: #555;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--black);
+      background: #fff;
+      line-height: 1.5;
+    }
+    header {
+      background: var(--black);
+      color: #fff;
+      padding: 24px 20px;
+      border-bottom: 4px solid var(--red);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    h1 .brand-red { color: var(--red); }
+    .tagline {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #BBB;
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+    .updated {
+      font-size: 13px;
+      color: var(--gray-text);
+      margin-bottom: 24px;
+    }
+    .tracker {
+      margin-bottom: 48px;
+      border: 1px solid var(--gray-line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .tracker-head {
+      background: var(--red);
+      color: #fff;
+      padding: 14px 18px;
+    }
+    .tracker-head h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .tracker-head .sub {
+      margin: 2px 0 0;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead tr { background: var(--gray-bg); }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--gray-line);
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--gray-text);
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--gray-line);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    .bill-id {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .bill-id a {
+      color: var(--red);
+      text-decoration: none;
+    }
+    .bill-id a:hover { text-decoration: underline; }
+    .title {
+      font-weight: 500;
+      max-width: 400px;
+    }
+    .sponsor {
+      font-size: 13px;
+      color: var(--gray-text);
+      white-space: nowrap;
+    }
+    .action {
+      font-size: 13px;
+      color: var(--gray-text);
+      max-width: 280px;
+    }
+    .action .date {
+      font-weight: 600;
+      color: var(--black);
+    }
+    .cosponsors {
+      text-align: center;
+      font-weight: 600;
+    }
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--gray-text);
+      font-style: italic;
+    }
+    footer {
+      max-width: 1200px;
+      margin: 48px auto 0;
+      padding: 24px 20px;
+      border-top: 2px solid var(--red);
+      font-size: 13px;
+      color: var(--gray-text);
+    }
+    footer .attr {
+      font-weight: 600;
+      color: var(--black);
+      margin-bottom: 4px;
+    }
+    footer a { color: var(--red); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .title { max-width: 100%; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr {
+        border-bottom: 1px solid var(--gray-line);
+        padding: 12px;
+      }
+      td {
+        border: none;
+        padding: 4px 0;
+      }
+      td.bill-id { font-size: 16px; margin-bottom: 6px; }
+      td.cosponsors { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Roach <span class="brand-red">Roundup</span> — Live Trackers</h1>
+      <p class="tagline">Investigative data pulled from congress.gov and federal sources</p>
+    </div>
+  </header>
+
+  <main>
+    <p class="updated">Last updated: {{ updated_at }}</p>
+
+    {% for tracker_id, tracker in trackers.items() %}
+    <section class="tracker">
+      <div class="tracker-head">
+        <h2>{{ tracker.title }}</h2>
+        <p class="sub">{{ tracker.subtitle }}</p>
+      </div>
+      {% if tracker.rows %}
+      <table>
+        <thead>
+          <tr>
+            <th>Bill</th>
+            <th>Title</th>
+            <th>Sponsor</th>
+            <th>Latest Action</th>
+            <th>Cosponsors</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in tracker.rows %}
+          <tr>
+            <td class="bill-id"><a href="{{ row.url }}" target="_blank" rel="noopener">{{ row.bill_id }}</a></td>
+            <td class="title">{{ row.title }}</td>
+            <td class="sponsor">
+              {{ row.sponsor_name }}
+              {% if row.sponsor_party %}({{ row.sponsor_party }}-{{ row.sponsor_state }}){% endif %}
+            </td>
+            <td class="action">
+              {% if row.latest_action_date %}<span class="date">{{ row.latest_action_date }}</span><br>{% endif %}
+              {{ row.latest_action_text }}
+            </td>
+            <td class="cosponsors">{{ row.cosponsor_count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="empty">No bills matching current keywords. Tracker is live — will populate as bills are introduced.</p>
+      {% endif %}
+    </section>
+    {% endfor %}
+  </main>
+
+  <footer>
+    <p class="attr">Roach Roundup — Investigative reporting by Rebecca Bruckner</p>
+    <p>
+      Contact: <a href="mailto:Rebecca@RoachRoundup.com">Rebecca@RoachRoundup.com</a> · 404-580-4415<br>
+      Data pulled live from <a href="https://api.congress.gov" target="_blank" rel="noopener">congress.gov API</a>.
+      Code open-source under MIT; reporting and editorial © Rebecca Bruckner / Roach Roundup.
+      Redistribution requires clear attribution.
+    </p>
+  </footer>
+</body>
+</html>
