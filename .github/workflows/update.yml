@@ -1,0 +1,64 @@
+name: Update Trackers
+
+on:
+  schedule:
+    # Every 6 hours
+    - cron: '0 */6 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:  # Lets you trigger manually from the Actions tab
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run trackers
+        env:
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+        run: python update.py
+
+      - name: Commit data changes
+        run: |
+          git config user.name "roach-roundup-bot"
+          git config user.email "bot@roachroundup.com"
+          git add data/ docs/
+          git diff --staged --quiet || git commit -m "Update tracker data [skip ci]"
+          git push
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
