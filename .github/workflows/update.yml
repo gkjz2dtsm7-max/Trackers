@@ -2,8 +2,8 @@ name: Update Trackers
 
 on:
   schedule:
-    # Every 6 hours
-    - cron: '0 */6 * * *'
+    # Once daily ≈ 06:00 America/New_York (EDT). Never more than once/day.
+    - cron: '0 10 * * *'
   push:
     branches: [main]
   workflow_dispatch:  # Lets you trigger manually from the Actions tab
