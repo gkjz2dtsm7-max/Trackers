@@ -18,15 +18,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Validate Python sources
+        run: |
+          python - <<'PY'
+          import sys
+          import unicodedata
+          from pathlib import Path
+
+          bad_locations = []
+          for path in Path(".").rglob("*.py"):
+              text = path.read_text(encoding="utf-8")
+              for line_number, line in enumerate(text.splitlines(), start=1):
+                  for char in line:
+                      if unicodedata.category(char) == "Cf":
+                          bad_locations.append((path, line_number, f"U+{ord(char):04X}"))
+
+          if bad_locations:
+              print("ERROR: Found invisible Unicode format characters in Python files:")
+              for path, line_number, codepoint in bad_locations:
+                  print(f" - {path}:{line_number} ({codepoint})")
+              sys.exit(1)
+
+          print("No invisible Unicode format characters found in Python files.")
+          PY
+
+      - name: Validate update.py syntax
+        run: python -m py_compile update.py
 
       - name: Run trackers
         env:
@@ -49,7 +76,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
