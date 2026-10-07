@@ -68,6 +68,15 @@ jobs:
           git diff --staged --quiet || git commit -m "Update tracker data [skip ci]"
           git push
 
+      # The commit above is pushed with [skip ci], so deploy cannot see docs/
+      # on the SHA that started this run. Hand the generated site over directly.
+      - name: Upload generated docs
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs
+          path: docs/
+          if-no-files-found: error
+
   deploy:
     needs: update
     runs-on: ubuntu-latest
@@ -75,8 +84,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
+      - name: Download generated docs
+        uses: actions/download-artifact@v8
+        with:
+          name: docs
+          path: ./docs
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
